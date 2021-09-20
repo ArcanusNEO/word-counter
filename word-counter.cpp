@@ -1,14 +1,14 @@
-#include <bits/extc++.h>
+#include <bits/stdc++.h>
 #include <unistd.h>
 using namespace std;
 
 class Trie {
   struct Node {
     char c;
-    bool stop;
+    int counter;
     Node* son,* sibling;
     Node(char ch = '\0', Node* _son = nullptr, Node* _sibling = nullptr) :
-      c(ch), son(_son), sibling(_sibling), stop(false) {}
+      c(ch), son(_son), sibling(_sibling), counter(0) {}
   };
   Node* root;
   virtual void __clear(Node* root) {
@@ -17,10 +17,24 @@ class Trie {
     __clear(root->sibling);
     delete root;
   }
+  virtual void __dump(Node* root, string & word, vector<pair<string, int>> & arr) {
+    if (root == nullptr) {return;}
+    __dump(root->sibling, word, arr);
+    if (root->c != '\0') {word.push_back(root->c);}
+    if (root->counter > 0) {
+      arr.push_back(make_pair(word, root->counter));
+    }
+    __dump(root->son, word, arr);
+    if (!word.empty()) {word.pop_back();}
+  }
 public: 
   Trie() : root(new Node()) {}
   virtual ~Trie() {
     __clear(root);
+  }
+  virtual void dump(vector<pair<string, int>> & arr) {
+    string word = "";
+    __dump(root, word, arr);
   }
   virtual void clear() {
     __clear(root);
@@ -43,9 +57,9 @@ public:
       root->son = new Node(word[i], nullptr, root->son);
       root = root->son;
     }
-    root->stop = true;
+    ++(root->counter);
   }
-  virtual bool search(const string & word) {
+  virtual int count(const string & word) {
     auto root = this->root;
     auto ptr = root->son;
     int i = 0; while (i < word.size()) {
@@ -56,17 +70,16 @@ public:
           break;
         }
       }
-      if (ptr == nullptr) {return false;}
+      if (ptr == nullptr) {return 0;}
     }
-    return root->stop;
+    return (root->counter);
   }
 };
 
 class Solution {
 private:
   string iPath, oPath, sPath;
-  map<string, int> freq;
-  Trie trie;
+  Trie stopWords, record;
   bool printTot;
 
 public:
@@ -83,7 +96,7 @@ public:
     }
     string word;
     while (cin >> word) {
-      trie.insert(word);
+      stopWords.insert(word);
     }
     if (path != "") {
       cin.rdbuf(cinOrig);
@@ -127,8 +140,8 @@ public:
       container.push_back(content);
       format(container);
       for (auto word : container) {
-        if (!trie.search(word)) {
-          ++freq[word];
+        if (stopWords.count(word) == 0) {
+          record.insert(word);
           ++tot;
         }
       }
@@ -141,9 +154,7 @@ public:
     }
   }
   void sortWords(vector<pair<string, int>> & arr) {
-    for (auto wordPair : freq) {
-      arr.push_back(wordPair);
-    }
+    record.dump(arr);
     sort(arr.begin(), arr.end(), [](const pair<string, int> & pairX, const pair<string, int> & pairY) {
       return (pairX.second > pairY.second || pairX.second == pairY.second && pairX.first < pairY.first);
     });
