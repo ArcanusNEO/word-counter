@@ -74,9 +74,12 @@ public:
     initStopWords(sPath);
   }
   void initStopWords(const string & path) {
-    ifstream ifs(path);
+    auto oldcin = cin.rdbuf();
+    if (path != "") {
+      cin.rdbuf(ifstream(path).rdbuf());
+    }
     string word;
-    while (ifs >> word) {
+    while (cin >> word) {
       trie.insert(word);
     }
   }
@@ -105,10 +108,12 @@ public:
     }
   }
   void readArticle(const string & path) {
-    ifstream ifs(path);
+    if (path != "") {
+      cin.rdbuf(ifstream(path).rdbuf());
+    }
     string word;
     int64_t tot = 0;
-    while (ifs >> word) {
+    while (cin >> word) {
       vector<string> container;
       container.push_back(word);
       format(container);
@@ -130,16 +135,18 @@ public:
     });
   }
   void writeToFile(const string & path, const vector<pair<string, int>> & arr) {
-    ofstream ofs(path);
+    if (path != "") {
+      cout.rdbuf(ofstream(path).rdbuf());
+    }
     if (arr.empty()) {
-      ofs << "{}";
+      cout << "{}";
       return;
     }
-    ofs << "{\n\t\"" << arr[0].first << "\": " << arr[0].second;
+    cout << "{\n\t\"" << arr[0].first << "\": " << arr[0].second;
     for (int i = 1; i < arr.size(); ++i) {
-      ofs << ",\n\t\"" << arr[i].first << "\": " << arr[i].second;
+      cout << ",\n\t\"" << arr[i].first << "\": " << arr[i].second;
     }
-    ofs << "\n}";
+    cout << "\n}";
   }
   void solve() {
     readArticle(iPath);
@@ -151,19 +158,32 @@ public:
 
 signed main(int argc, char* argv[]) {
   int opt;
-  string iPath, oPath, sPath;
-  while (~(opt = getopt(argc, argv, "i:o:s:"))) {
-    if (opt == 'i' && optarg) {
-      iPath = optarg;
-    } else if (opt == 'o' && optarg) {
-      oPath = optarg;
-    } else if (opt == 's' && optarg) {
-      sPath = optarg;
-    } else {
-      cerr << "Error arguments" << endl;
-      exit(0);
+  string iPath = "", oPath = "", sPath = "Stop Words.txt";
+  while (~(opt = getopt(argc, argv, "i::o::s::"))) {
+    switch (opt) {
+      case 'i': {
+        iPath = ((optarg == nullptr || strcmp(optarg, "-") == 0) ? "" : optarg);
+      break;}
+      case 'o': {
+        oPath = ((optarg == nullptr || strcmp(optarg, "-") == 0) ? "" : optarg);
+      break;}
+      case 's': {
+        sPath = ((optarg == nullptr || strcmp(optarg, "-") == 0) ? "" : optarg);
+      break;}
+      default: {
+        cerr << "Error arguments" << endl;
+        exit(1);
+      break;}
     }
   }
+  if (iPath == "" && sPath == "") {
+    cerr << "Cannot have two options to read from standard input" << endl;
+    exit(1);
+  }
+  // ios_base::sync_with_stdio(false);
+  // if (iPath != "" && oPath != "" && sPath != "") {
+  //   cin.tie(nullptr); cout.tie(nullptr);
+  // }
   Solution s(iPath, oPath, sPath);
   s.solve();
 }
