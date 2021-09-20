@@ -67,17 +67,26 @@ private:
   string iPath, oPath, sPath;
   map<string, int> freq;
   Trie trie;
+  bool printTot;
 
 public:
-  Solution(string i, string o, string s) :
-    iPath(i), oPath(o), sPath(s) {
+  Solution(string i, string o, string s, bool p) :
+    iPath(i), oPath(o), sPath(s), printTot(p) {
     initStopWords(sPath);
   }
   void initStopWords(const string & path) {
-    ifstream ifs(path);
+    ifstream ifs;
+    streambuf* cinOrig;
+    if (path != "") {
+      ifs.open(path);
+      cinOrig = cin.rdbuf(ifs.rdbuf());
+    }
     string word;
-    while (ifs >> word) {
+    while (cin >> word) {
       trie.insert(word);
+    }
+    if (path != "") {
+      cin.rdbuf(cinOrig);
     }
   }
   void format(vector<string> & words) {
@@ -90,7 +99,7 @@ public:
       }
     }
     for (i = 0; i < word.size(); ++i) {
-      if (word[j] >= 'a' && word[j] <= 'z' || word[j] == '\'') {break;}
+      if (word[i] >= 'a' && word[i] <= 'z' || word[i] == '\'') {break;}
     }
     while (i < word.size()) {
       for (j = i + 1; j < word.size(); ++j) {
@@ -100,17 +109,22 @@ public:
         words.push_back(word.substr(i, j - i));
       }
       for (i = j; i < word.size(); ++i) {
-        if (word[j] >= 'a' && word[j] <= 'z' || word[j] == '\'') {break;}
+        if (word[i] >= 'a' && word[i] <= 'z' || word[i] == '\'') {break;}
       }
     }
   }
   void readArticle(const string & path) {
-    ifstream ifs(path);
-    string word;
+    ifstream ifs;
+    streambuf* cinOrig;
+    if (path != "") {
+      ifs.open(path);
+      cinOrig = cin.rdbuf(ifs.rdbuf());
+    }
+    string content;
     int64_t tot = 0;
-    while (ifs >> word) {
+    while (cin >> content) {
       vector<string> container;
-      container.push_back(word);
+      container.push_back(content);
       format(container);
       for (auto word : container) {
         if (!trie.search(word)) {
@@ -119,7 +133,12 @@ public:
         }
       }
     }
-    cout << "Total words: " << tot << endl;
+    if (path != "") {
+      cin.rdbuf(cinOrig);
+    }
+    if (printTot) {
+      cout << "Total words: " << tot << endl;
+    }
   }
   void sortWords(vector<pair<string, int>> & arr) {
     for (auto wordPair : freq) {
@@ -130,16 +149,24 @@ public:
     });
   }
   void writeToFile(const string & path, const vector<pair<string, int>> & arr) {
-    ofstream ofs(path);
+    ofstream ofs;
+    streambuf* coutOrig;
+    if (path != "") {
+      ofs.open(path);
+      coutOrig = cout.rdbuf(ofs.rdbuf());
+    }
     if (arr.empty()) {
-      ofs << "{}";
+      cout << "{}\n";
       return;
     }
-    ofs << "{\n\t\"" << arr[0].first << "\": " << arr[0].second;
+    cout << "{\n\t\"" << arr[0].first << "\": " << arr[0].second;
     for (int i = 1; i < arr.size(); ++i) {
-      ofs << ",\n\t\"" << arr[i].first << "\": " << arr[i].second;
+      cout << ",\n\t\"" << arr[i].first << "\": " << arr[i].second;
     }
-    ofs << "\n}";
+    cout << "\n}\n";
+    if (path != "") {
+      cout.rdbuf(coutOrig);
+    }
   }
   void solve() {
     readArticle(iPath);
@@ -150,20 +177,34 @@ public:
 };
 
 signed main(int argc, char* argv[]) {
+  ios_base::sync_with_stdio(false);
   int opt;
-  string iPath, oPath, sPath;
-  while (~(opt = getopt(argc, argv, "i:o:s:"))) {
-    if (opt == 'i' && optarg) {
-      iPath = optarg;
-    } else if (opt == 'o' && optarg) {
-      oPath = optarg;
-    } else if (opt == 's' && optarg) {
-      sPath = optarg;
-    } else {
-      cerr << "Error arguments" << endl;
-      exit(0);
+  bool printTot = false;
+  string iPath = "", oPath = "", sPath = "Stop Words.txt";
+  while (~(opt = getopt(argc, argv, "i:o:s:w"))) {
+    switch (opt) {
+      case 'i': {
+        iPath = ((optarg == "-" || optarg == "--") ? "" : optarg);
+      break;}
+      case 'o': {
+        oPath = ((optarg == "-" || optarg == "--") ? "" : optarg);
+      break;}
+      case 's': {
+        sPath = ((optarg == "-" || optarg == "--") ? "" : optarg);
+      break;}
+      case 'w': {
+        printTot = true;
+      break;}
+      default: {
+        cerr << "Error arguments" << endl;
+        exit(1);
+      break;}
     }
   }
-  Solution s(iPath, oPath, sPath);
+  if (iPath == "" && sPath == "") {
+    cerr << "There cannot be more than one stream read from standard input at the same time" << endl;
+    exit(1);
+  }
+  Solution s(iPath, oPath, sPath, printTot);
   s.solve();
 }
