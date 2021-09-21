@@ -94,9 +94,14 @@ public:
       ifs.open(path);
       cinOrig = cin.rdbuf(ifs.rdbuf());
     }
+    int64_t tot = 0;
     string word;
     while (cin >> word) {
+      ++tot;
       stopWords.insert(word);
+    }
+    if (verbose) {
+      cout << "Total stop words: " << tot << endl;
     }
     if (path != "") {
       cin.rdbuf(cinOrig);
@@ -216,6 +221,11 @@ signed main(int argc, char* argv[]) {
     cerr << "There cannot be more than one stream read from standard input at the same time" << endl;
     exit(1);
   }
+  auto ts = clock();
   Solution s(iPath, oPath, sPath, verbose);
   s.solve();
+  auto te = clock();
+  if (verbose) {
+    cout << "Total time used: " << (double) (te - ts) / CLOCKS_PER_SEC << "s" << endl;
+  }
 }

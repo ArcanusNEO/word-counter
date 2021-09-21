@@ -10,7 +10,7 @@
 word-counter -v
 ```
 
-程序会从当前目录下查找停词表stop-words-eng.txt，默认从标准输入读取文章，并默认向标准输出打印json格式的词频信息。其中，-v选项表明使用verbose模式，会先输出一些统计信息。
+程序会从当前目录下查找停词表stop-words-eng.txt，默认从标准输入读取文章，并默认向标准输出打印json格式的词频信息。其中，-v选项表明使用verbose模式，会向标准输出打印一些统计信息。
 
 ```shell
 word-counter -i 'demo/Pride and Prejudice.txt' -o 'demo/Pride and Prejudice Word Count.json' -s 'stop-words-eng.txt'
