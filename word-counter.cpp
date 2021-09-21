@@ -80,11 +80,11 @@ class Solution {
 private:
   string iPath, oPath, sPath;
   Trie stopWords, record;
-  bool printTot;
+  bool verbose;
 
 public:
   Solution(string i, string o, string s, bool p) :
-    iPath(i), oPath(o), sPath(s), printTot(p) {
+    iPath(i), oPath(o), sPath(s), verbose(p) {
     initStopWords(sPath);
   }
   void initStopWords(const string & path) {
@@ -149,7 +149,7 @@ public:
     if (path != "") {
       cin.rdbuf(cinOrig);
     }
-    if (printTot) {
+    if (verbose) {
       cout << "Total words: " << tot << endl;
     }
   }
@@ -190,21 +190,21 @@ public:
 signed main(int argc, char* argv[]) {
   ios_base::sync_with_stdio(false);
   int opt;
-  bool printTot = false;
-  string iPath = "", oPath = "", sPath = "Stop Words.txt";
-  while (~(opt = getopt(argc, argv, "i:o:s:w"))) {
+  bool verbose = false;
+  string iPath = "", oPath = "", sPath = "stop-words-eng.txt";
+  while (~(opt = getopt(argc, argv, "i:o:s:v"))) {
     switch (opt) {
       case 'i': {
-        iPath = ((optarg == "-" || optarg == "--") ? "" : optarg);
+        iPath = ((optarg == nullptr || strcmp(optarg, "-") == 0 || strcmp(optarg, "--") == 0) ? "" : optarg);
       break;}
       case 'o': {
-        oPath = ((optarg == "-" || optarg == "--") ? "" : optarg);
+        oPath = ((optarg == nullptr || strcmp(optarg, "-") == 0 || strcmp(optarg, "--") == 0) ? "" : optarg);
       break;}
       case 's': {
-        sPath = ((optarg == "-" || optarg == "--") ? "" : optarg);
+        sPath = ((optarg == nullptr || strcmp(optarg, "-") == 0 || strcmp(optarg, "--") == 0) ? "" : optarg);
       break;}
-      case 'w': {
-        printTot = true;
+      case 'v': {
+        verbose = true;
       break;}
       default: {
         cerr << "Error arguments" << endl;
@@ -216,6 +216,6 @@ signed main(int argc, char* argv[]) {
     cerr << "There cannot be more than one stream read from standard input at the same time" << endl;
     exit(1);
   }
-  Solution s(iPath, oPath, sPath, printTot);
+  Solution s(iPath, oPath, sPath, verbose);
   s.solve();
 }
